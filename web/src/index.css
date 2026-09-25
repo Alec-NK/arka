@@ -1,0 +1,34 @@
+@import "tailwindcss";
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --color-brand: #900923;
+  --color-brand-soft: #f7edef;
+  --color-muted: #697186;
+  --color-line: #e6e7ec;
+  --color-sale: #008d4b;
+  --color-expense: #df092b;
+  --color-ink: #141827;
+  --shadow-layer: 0 12px 40px #1720331f;
+}
+
+@layer base {
+  :root { font-family: var(--font-sans); color: var(--color-ink); background: #fff; font-synthesis: none; }
+  body { min-width: 320px; }
+  button, input, select, textarea, label, summary { font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 4px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--color-muted); }
+  input, textarea { caret-color: var(--color-brand); }
+  ::selection { background: #f0cdd5; color: #5d0617; }
+  * { scrollbar-width: thin; scrollbar-color: #c7b5bb transparent; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+}

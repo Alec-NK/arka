@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+.git
+.DS_Store
+*.log
+src/generated
+Dockerfile
+compose.yaml
+.dockerignore
+README.md
+*.tsbuildinfo
+docker

@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  transactions Transaction[]
+  suppliers    Supplier[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@map("users")
+}
+
+model TransactionType {
+  id           String        @id @default(uuid())
+  code         String        @unique @db.VarChar(30)
+  name         String        @db.VarChar(80)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@map("transactions_type")
+}
+
+model Transaction {
+  id                String          @id @default(uuid())
+  userId            String          @map("user_id")
+  transactionTypeId String          @map("transaction_type_id")
+  amount            Decimal         @db.Decimal(19, 2)
+  currency          String          @default("BRL") @db.Char(3)
+  transactionDate   DateTime        @map("transaction_date") @db.Date
+  description       String          @db.VarChar(255)
+  reference         String?         @db.VarChar(120)
+  notes             String?
+  version           Int             @default(1)
+  supplierId        String?         @map("supplier_id")
+  user              User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  transactionType   TransactionType @relation(fields: [transactionTypeId], references: [id], onDelete: Restrict)
+  supplier          Supplier?       @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  deletedAt         DateTime?       @map("deleted_at")
+
+  @@index([transactionTypeId])
+  @@index([supplierId])
+  @@map("transactions")
+}
+
+model Supplier {
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  name         String        @db.VarChar(255)
+  version      Int           @default(1)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@index([userId, name])
+  @@map("suppliers")
+}

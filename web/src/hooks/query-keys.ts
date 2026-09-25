@@ -1,0 +1,1 @@
+export const QUERY_KEYS = { transactions: 'transactions', transaction: 'transaction', transactionTypes: 'transaction-types', suppliers: 'suppliers', supplier: 'supplier', session: 'session' } as const;
