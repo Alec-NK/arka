@@ -5,14 +5,15 @@ import type { SupplierSummary } from '../../types/supplier';
 import { useDebouncedValue } from '../_utils/useDebouncedValue';
 interface Props {
   userId: string; selectedId: string | null; selectedSupplier?: SupplierSummary | null;
-  onChange: (supplier: SupplierSummary | null) => void; allowCreate?: boolean;
+  onChange: (supplier: SupplierSummary | null) => void; allowCreate?: boolean; disabled?: boolean;
   label?: string; emptyLabel?: string; onBusyChange?: (busy: boolean) => void;
 }
-export function SupplierPicker({ userId, selectedId, selectedSupplier, onChange, allowCreate = false, label = 'Fornecedor', emptyLabel = 'Sem fornecedor', onBusyChange }: Props) {
+export function SupplierPicker({ userId, selectedId, selectedSupplier, onChange, allowCreate = false, disabled = false, label = 'Fornecedor', emptyLabel = 'Sem fornecedor', onBusyChange }: Props) {
   const id = useId();
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false);
+  const open = isOpen && !disabled;
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [active, setActive] = useState(0);
@@ -28,6 +29,7 @@ export function SupplierPicker({ userId, selectedId, selectedSupplier, onChange,
   const clean = search.trim();
   const canCreate = allowCreate && !!clean && !waiting && !query.isError && !options.some(option => option.name.toLocaleLowerCase('pt-BR') === clean.toLocaleLowerCase('pt-BR'));
   const optionCount = 1 + options.length + (canCreate ? 1 : 0);
+  if (disabled && isOpen) setOpen(false);
   useEffect(() => { onBusyChange?.(create.isPending); }, [create.isPending, onBusyChange]);
   useEffect(() => {
     if (!open) return;
@@ -36,26 +38,26 @@ export function SupplierPicker({ userId, selectedId, selectedSupplier, onChange,
     document.addEventListener('focusin', close);
     return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('focusin', close); };
   }, [open, create.isPending]);
-  const choose = (supplier: SupplierSummary | null) => { onChange(supplier); setOpen(false); setSearch(''); setPage(1); input.current?.focus(); };
+  const choose = (supplier: SupplierSummary | null) => { if (disabled) return; onChange(supplier); setOpen(false); setSearch(''); setPage(1); input.current?.focus(); };
   const add = async () => {
-    if (!canCreate || create.isPending) return;
+    if (disabled || !canCreate || create.isPending) return;
     try { const supplier = await create.mutateAsync({ name: clean }); choose(supplier); setAnnouncement(`Fornecedor ${supplier.name} criado e selecionado.`); } catch { /* Keep the query and draft available for retry. */ }
   };
   const activate = (index: number) => { if (index === 0) choose(null); else if (index <= options.length) choose(options[index - 1]); else void add(); };
   return <div ref={root} className="min-w-0">
     <div className="relative flex items-center"><Search size={17} className="pointer-events-none absolute left-3 text-muted" />
-      <input ref={input} id={id} role="combobox" aria-label={label} aria-expanded={open} aria-controls={`${id}-options`} aria-autocomplete="list" aria-activedescendant={open && !waiting && !query.isError ? `${id}-option-${Math.min(active, optionCount - 1)}` : undefined} autoComplete="off" maxLength={255} readOnly={create.isPending} className="field-control !pr-16 !pl-10" placeholder={allowCreate ? 'Pesquisar ou criar fornecedor' : emptyLabel} value={open ? search : name} onFocus={() => { setOpen(true); setSearch(''); setPage(1); setActive(0); }} onChange={event => { setSearch(event.target.value); setPage(1); setActive(0); create.reset(); setOpen(true); }} onKeyDown={event => {
+      <input ref={input} id={id} role="combobox" aria-label={label} aria-expanded={open} aria-controls={`${id}-options`} aria-autocomplete="list" aria-activedescendant={open && !waiting && !query.isError ? `${id}-option-${Math.min(active, optionCount - 1)}` : undefined} autoComplete="off" maxLength={255} disabled={disabled} readOnly={create.isPending} className="field-control !pr-16 !pl-10 disabled:cursor-not-allowed" placeholder={allowCreate ? 'Pesquisar ou criar fornecedor' : emptyLabel} value={open ? search : name} onFocus={() => { setOpen(true); setSearch(''); setPage(1); setActive(0); }} onChange={event => { setSearch(event.target.value); setPage(1); setActive(0); create.reset(); setOpen(true); }} onKeyDown={event => {
         if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); if (!create.isPending) setOpen(false); }
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); setOpen(true); setActive(value => Math.max(0, Math.min(optionCount - 1, value + (event.key === 'ArrowDown' ? 1 : -1)))); }
         if (event.key === 'Enter' && open) { event.preventDefault(); if (!waiting && !create.isPending && !query.isError) activate(Math.min(active, optionCount - 1)); }
       }} />
-      <div className="absolute right-1 flex">{selectedId && <button type="button" disabled={create.isPending} onClick={() => choose(null)} aria-label="Limpar fornecedor" className="grid h-11 w-8 place-items-center rounded text-muted hover:text-brand"><X size={15} /></button>}<button type="button" disabled={create.isPending} onClick={() => { if (open) setOpen(false); else input.current?.focus(); }} aria-label={open ? 'Fechar fornecedores' : 'Pesquisar fornecedores'} className="grid h-11 w-8 place-items-center text-muted"><ChevronDown size={16} /></button></div>
+      <div className="absolute right-1 flex">{selectedId && <button type="button" disabled={disabled || create.isPending} onClick={() => choose(null)} aria-label="Limpar fornecedor" className="grid h-11 w-8 place-items-center rounded text-muted hover:text-brand"><X size={15} /></button>}<button type="button" disabled={disabled || create.isPending} onClick={() => { if (open) setOpen(false); else input.current?.focus(); }} aria-label={open ? 'Fechar fornecedores' : 'Pesquisar fornecedores'} className="grid h-11 w-8 place-items-center text-muted"><ChevronDown size={16} /></button></div>
     </div>
     {open && <div className="reveal mt-2 rounded-xl border border-line bg-white p-1.5">
       <div id={`${id}-options`} role="listbox" aria-label={label} aria-busy={waiting || create.isPending} className="max-h-52 overflow-y-auto">
-        <button type="button" role="option" id={`${id}-option-0`} aria-selected={!selectedId} disabled={create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => choose(null)} className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm ${active === 0 ? 'bg-brand-soft text-brand' : 'text-muted hover:bg-canvas'}`}>{!selectedId && <Check size={16} />}{emptyLabel}</button>
-        {options.map((supplier, index) => <button key={supplier.id} type="button" role="option" id={`${id}-option-${index + 1}`} aria-selected={supplier.id === selectedId} disabled={create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => choose(supplier)} className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm break-words ${active === index + 1 ? 'bg-brand-soft text-brand' : 'hover:bg-canvas'}`}><span className="min-w-0 [overflow-wrap:anywhere]">{supplier.name}</span>{supplier.id === selectedId && <Check size={16} className="shrink-0 text-brand" />}</button>)}
-        {canCreate && <button type="button" role="option" aria-selected={false} id={`${id}-option-${options.length + 1}`} disabled={create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => void add()} className={`flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-brand ${active === options.length + 1 ? 'bg-brand-soft' : 'hover:bg-brand-soft'}`}><Plus size={18} className="shrink-0" /><span className="min-w-0 [overflow-wrap:anywhere]">{create.isPending ? 'Criando fornecedor…' : `Criar “${clean}”`}</span></button>}
+        <button type="button" role="option" id={`${id}-option-0`} aria-selected={!selectedId} disabled={disabled || create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => choose(null)} className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm ${active === 0 ? 'bg-brand-soft text-brand' : 'text-muted hover:bg-canvas'}`}>{!selectedId && <Check size={16} />}{emptyLabel}</button>
+        {options.map((supplier, index) => <button key={supplier.id} type="button" role="option" id={`${id}-option-${index + 1}`} aria-selected={supplier.id === selectedId} disabled={disabled || create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => choose(supplier)} className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm break-words ${active === index + 1 ? 'bg-brand-soft text-brand' : 'hover:bg-canvas'}`}><span className="min-w-0 [overflow-wrap:anywhere]">{supplier.name}</span>{supplier.id === selectedId && <Check size={16} className="shrink-0 text-brand" />}</button>)}
+        {canCreate && <button type="button" role="option" aria-selected={false} id={`${id}-option-${options.length + 1}`} disabled={disabled || create.isPending} tabIndex={-1} onMouseDown={event => event.preventDefault()} onClick={() => void add()} className={`flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-brand ${active === options.length + 1 ? 'bg-brand-soft' : 'hover:bg-brand-soft'}`}><Plus size={18} className="shrink-0" /><span className="min-w-0 [overflow-wrap:anywhere]">{create.isPending ? 'Criando fornecedor…' : `Criar “${clean}”`}</span></button>}
       </div>
       {waiting && <p role="status" className="px-3 py-3 text-xs text-muted">Buscando fornecedores…</p>}
       {!waiting && !query.isError && !options.length && <p className="px-3 py-2 text-xs leading-5 text-muted">{allowCreate ? 'Digite um nome e escolha Criar para cadastrar aqui.' : 'Nenhum fornecedor encontrado.'}</p>}

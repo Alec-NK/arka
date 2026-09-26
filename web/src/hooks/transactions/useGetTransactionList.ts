@@ -9,5 +9,5 @@ export type GetTransactionListResult = TransactionPage;
 export function useGetTransactionList({ userId, filters }: GetTransactionListParams) {
  return useQuery({ queryKey: [QUERY_KEYS.transactions, userId, filters], queryFn: async ({ signal }): Promise<GetTransactionListResult> => {
   try { return toTransactionPage(await TransactionsService.getInstance().list(toTransactionQuery(filters), signal)) } catch (e) { throw toApiError(e) }
- }, enabled: !!userId });
+ }, enabled: !!userId, placeholderData: (previous, previousQuery) => previousQuery?.queryKey[1] === userId ? previous : undefined });
 }

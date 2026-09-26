@@ -2,7 +2,6 @@ import { Transform } from 'class-transformer';
 import {
   Equals,
   IsDateString,
-  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
@@ -32,9 +31,9 @@ export class CreateTransactionDto {
     typeof value === 'string' ? value.trim() : value,
   )
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(255)
-  description: string;
+  description?: string | null;
 
   @IsOptional()
   @IsString()

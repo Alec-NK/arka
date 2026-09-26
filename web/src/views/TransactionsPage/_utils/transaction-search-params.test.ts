@@ -40,3 +40,26 @@ describe('transaction month filter', () => {
   expect(toTransactionQuery(filters).supplier_id).toBeUndefined();
  });
 });
+
+describe('transaction pagination', () => {
+ it('requests ten items on the first page by default', () => {
+  expect(toTransactionQuery(readFilters(new URLSearchParams()))).toMatchObject({ page: 1, page_size: 10 });
+ });
+
+ it.each([10, 20, 50, 100])('keeps a page size of %i in navigation links and API requests', pageSize => {
+  const params = new URLSearchParams(`month=2024-02&search=rent&page=2&page_size=${pageSize}`);
+  const next = writeFilters(params, { ...readFilters(params), page: 3 });
+  expect(toTransactionQuery(readFilters(next))).toMatchObject({ page: 3, page_size: pageSize, search: 'rent', date_from: '2024-02-01' });
+ });
+
+ it.each(['', '0', '-10', '11', '101', '1.5', 'NaN', 'Infinity'])('falls back to ten for an unsupported page size: %s', value => {
+  expect(readFilters(new URLSearchParams({ page_size: value })).pageSize).toBe(10);
+ });
+
+ it('retains filters when changing the page size and returning to the first page', () => {
+  const params = new URLSearchParams('month=2024-02&type=purchase&supplier=supplier-1&search=rent&page=4&page_size=20&selected=123');
+  const next = writeFilters(params, { ...readFilters(params), pageSize: 50, page: 1 });
+  expect(readFilters(next)).toMatchObject({ page: 1, pageSize: 50, transactionTypeId: 'purchase', supplierId: 'supplier-1', search: 'rent', dateFrom: '2024-02-01' });
+  expect(next.has('selected')).toBe(false);
+ });
+});

@@ -72,7 +72,7 @@ export function toCreateTransactionInput(
     amount: dto.amount,
     currency: dto.currency,
     transactionDate: dto.transaction_date,
-    description: dto.description,
+    description: dto.description ?? '',
     reference: dto.reference,
     notes: dto.notes,
     supplierId: dto.supplier_id,
@@ -88,7 +88,7 @@ export function toUpdateTransactionInput(
   if (dto.currency !== undefined) input.currency = dto.currency;
   if (dto.transaction_date !== undefined)
     input.transactionDate = dto.transaction_date;
-  if (dto.description !== undefined) input.description = dto.description;
+  if (dto.description !== undefined) input.description = dto.description ?? '';
   if (dto.reference !== undefined) input.reference = dto.reference;
   if (dto.notes !== undefined) input.notes = dto.notes;
   if (dto.supplier_id !== undefined) input.supplierId = dto.supplier_id;

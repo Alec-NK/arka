@@ -3,7 +3,7 @@ const classes = {
   "badge": "inline-flex min-w-0 items-center gap-[13px] text-[13px] text-[#414b61] [&>span:last-child]:[overflow-wrap:anywhere]",
   "icon": "inline-flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-[5px]",
   "sale": "bg-[#e2f6e8] text-sale",
-  "purchase": "bg-[#fff0f2] text-[#a62440]",
+  "purchase": "bg-purchase-soft text-purchase",
   "expense": "bg-[#faf0f2] text-[#b32c43]",
   "large": "h-[51px] w-[51px] rounded-full"
 } as Record<string, string>;

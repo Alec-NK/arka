@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle } from 'lucide-react';
 import { useGetSession } from '../../hooks/session';
 import { useGetTransactionList, useGetTransaction } from '../../hooks/transactions';
 import { useGetTransactionTypeList } from '../../hooks/transaction-types';
@@ -12,6 +12,7 @@ import { PageHeader } from '../_components/PageHeader';
 import { TransactionFilters } from './_components/TransactionFilters';
 import { TransactionSummary } from './_components/TransactionSummary';
 import { TransactionsTable } from './_components/TransactionsTable';
+import { TransactionPagination } from './_components/TransactionPagination';
 import { TransactionDetails } from './_components/TransactionDetails';
 import { TransactionForm } from './_components/TransactionForm';
 import { DeleteTransactionDialog } from './_components/DeleteTransactionDialog';
@@ -39,7 +40,7 @@ export default function TransactionsPage() {
   const select = (id: string) => setParams(previous => { const next = new URLSearchParams(previous); if (id) next.set('selected', id); else next.delete('selected'); return next; });
   const closeDetails = () => { restoreId.current = selectedId; select(''); };
   useEffect(() => { if (selectedId || !restoreId.current) return; const id = restoreId.current; restoreId.current = ''; const timer = window.setTimeout(() => findTrigger(id)?.focus(), 0); return () => clearTimeout(timer); }, [selectedId]);
-  useEffect(() => { if (list.data && filters.page > Math.max(1, list.data.meta.totalPages)) changeFilters({ page: Math.max(1, list.data.meta.totalPages) }); }, [list.data, filters.page, changeFilters]);
+  useEffect(() => { if (list.data && !list.isPlaceholderData && filters.page > Math.max(1, list.data.meta.totalPages)) changeFilters({ page: Math.max(1, list.data.meta.totalPages) }); }, [list.data, list.isPlaceholderData, filters.page, changeFilters]);
   const clear = () => changeFilters({ dateFrom: '', dateTo: '', transactionTypeId: '', supplierId: '', search: '' });
   const invalidType = !!filters.transactionTypeId && !!types.data && !types.data.some(type => type.id === filters.transactionTypeId);
   const error = invalidType ? 'Este tipo de transação não está disponível. Limpe o filtro para continuar.' : list.error?.message;
@@ -58,7 +59,7 @@ export default function TransactionsPage() {
     <div className={`grid items-start gap-5 ${selectedId && desktop ? 'grid-cols-[minmax(0,1fr)_320px] min-[1700px]:grid-cols-[minmax(0,1fr)_350px]' : 'grid-cols-1'}`}>
       <section className="@container min-w-0 rounded-xl border border-line bg-white" aria-label="Transações"><TransactionFilters filters={filters} types={types.data || []} userId={userId} onChange={changeFilters} />
         {error ? <div role="alert" className="feedback-error m-5 flex flex-wrap items-center gap-3"><AlertCircle size={20} /><span className="min-w-[150px] flex-1">{error}</span><Button onClick={invalidType ? clear : () => void list.refetch()}>{invalidType ? 'Limpar filtros' : 'Tentar novamente'}</Button></div> : <TransactionsTable data={list.data?.data || []} selectedId={selectedId} sortOrder={filters.sortOrder} loading={list.isPending} onSort={() => changeFilters({ sortOrder: filters.sortOrder === 'desc' ? 'asc' : 'desc' })} onSelect={select} onEdit={setForm} onDelete={setDeletion} onClear={clear} onCreate={add} canCreate={!!types.data?.length} filtered={!!(filters.search || filters.transactionTypeId || filters.supplierId || filters.dateFrom || filters.dateTo)} />}
-        {list.data && !error && <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4 text-xs text-muted"><span>{list.data.meta.total ? `${(list.data.meta.page - 1) * list.data.meta.pageSize + 1}–${Math.min(list.data.meta.page * list.data.meta.pageSize, list.data.meta.total)} de ${list.data.meta.total} transações` : '0 transações'}</span>{list.data.meta.totalPages > 1 && <div className="flex items-center gap-2"><Button className="!size-11 !p-0" aria-label="Página anterior" disabled={filters.page <= 1 || list.isFetching} onClick={() => changeFilters({ page: filters.page - 1 })}><ChevronLeft /></Button><span>Página {filters.page} de {list.data.meta.totalPages}</span><Button className="!size-11 !p-0" aria-label="Próxima página" disabled={filters.page >= list.data.meta.totalPages || list.isFetching} onClick={() => changeFilters({ page: filters.page + 1 })}><ChevronRight /></Button></div>}</footer>}
+        {list.data && !error && <TransactionPagination meta={list.data.meta} pageSize={filters.pageSize} loading={list.isFetching} onPageChange={page => changeFilters({ page })} onPageSizeChange={pageSize => changeFilters({ pageSize, page: 1 })} />}
       </section>
       {selectedId && desktop && <TransactionDetails {...detailsProps} />}
     </div>
