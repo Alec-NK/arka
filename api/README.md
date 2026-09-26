@@ -25,7 +25,7 @@ by email at `/login`; the demo account is `alex@example.test`.
 | Users (reference module) | http://localhost:3000/api/v1/users |
 | Health | http://localhost:3000/health |
 | Swagger UI / OpenAPI | http://localhost:3000/docs / http://localhost:3000/docs-json |
-| PostgreSQL | localhost:5432, user `arka`, password `arka`, database `arka` |
+| PostgreSQL | localhost:5446, user `arka`, password `arka`, database `arka` |
 
 Ports and credentials can be changed in `.env` (copy from `.env.example`).
 

@@ -6,6 +6,7 @@ export class SuppliersService extends BaseService {
   private constructor() { super() }
   static getInstance() { return this.instance ??= new SuppliersService() }
   async list(params: SupplierQueryDto, signal?: AbortSignal) { return (await this.client.get<SupplierPageDto>('/suppliers', { params, signal })).data }
+  async remove(id: string, version: number) { await this.client.delete(`/suppliers/${id}`, { params: { version } }) }
   async get(id: string, signal?: AbortSignal) { return (await this.client.get<SupplierDto>(`/suppliers/${id}`, { signal })).data }
   async create(payload: SupplierInputDto) { return (await this.client.post<SupplierDto>('/suppliers', payload)).data }
   async update(id: string, payload: SupplierInputDto & { version: number }) { return (await this.client.patch<SupplierDto>(`/suppliers/${id}`, payload)).data }

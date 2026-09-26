@@ -1,38 +1,14 @@
-import { ArrowUp, ShoppingBasket, ReceiptText, Equal } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import type { TransactionPage } from '../../../types/transaction';
 import { formatMoney } from '../../../utils/format-money';
-const classes = {
-  "summary": "my-6 grid grid-cols-4 gap-4 mb-[26px] @max-[900px]:grid-cols-2 @max-[900px]:gap-3 @max-[480px]:my-5 @max-[320px]:grid-cols-1",
-  "card": "flex min-h-[102px] min-w-0 items-center justify-between gap-2 rounded-[7px] border border-line px-5 py-[19px] @max-[900px]:px-4 @max-[900px]:py-[18px] @max-[480px]:min-h-[88px] @max-[480px]:px-3 @max-[480px]:py-3.5 @max-[320px]:min-h-0 @max-[320px]:[&>div]:flex @max-[320px]:[&>div]:w-full @max-[320px]:[&>div]:items-center @max-[320px]:[&>div]:justify-between @max-[320px]:[&>div]:gap-2.5 [&_p]:mb-2 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-[#414b61] @max-[480px]:[&_p]:mb-[7px] @max-[480px]:[&_p]:text-xs @max-[320px]:[&_p]:mb-0 [&_strong]:block [&_strong]:text-[clamp(18px,1.5vw,25px)] [&_strong]:leading-[1.25] [&_strong]:font-semibold [&_strong]:tracking-[-0.6px] [&_strong]:[font-variant-numeric:tabular-nums] [&_strong]:[overflow-wrap:anywhere] @max-[900px]:[&_strong]:text-[clamp(18px,2.4vw,24px)] @max-[480px]:[&_strong]:text-[17px] @max-[320px]:[&_strong]:text-right @max-[320px]:[&_strong]:text-[19px]",
-  "symbol": "grid h-[39px] w-[39px] shrink-0 place-items-center rounded-full @max-[480px]:hidden",
-  "sales": "[&_strong]:text-sale [&_.summary-symbol]:text-sale [&_.summary-symbol]:bg-[#e7f7eb]",
-  "purchases": "[&_strong]:text-expense [&_.summary-symbol]:text-expense [&_.summary-symbol]:bg-[#fcedf0]",
-  "expenses": "[&_strong]:text-expense [&_.summary-symbol]:text-expense [&_.summary-symbol]:bg-[#fcedf0]",
-  "net": "[&_.summary-symbol]:bg-[#f5f5f7] [&_.summary-symbol]:text-[#4a546c]",
-  "skeleton": "block h-7 w-[110px] max-w-full rounded bg-[#f1f1f4]"
-} as Record<string, string>;
-
 type Summary = TransactionPage['summary'];
-
-const cards = [
-  { label: 'Vendas', key: 'sales', icon: ArrowUp },
-  { label: 'Compras', key: 'purchases', icon: ShoppingBasket },
-  { label: 'Despesas', key: 'expenses', icon: ReceiptText },
-  { label: 'Saldo líquido', key: 'net', icon: Equal },
-] as const;
-
-export function TransactionSummary({ summary, loading }: { summary?: Summary; loading: boolean }) {
-  return (
-    <section className={classes.summary} aria-label="Totais das transações" aria-busy={loading}>
-      {cards.map(({ label, key, icon: Icon }) => (
-        <div className={`${classes.card} ${classes[key]}`} key={key}>
-          <div>
-            <p>{label}</p>
-            <strong>{loading ? <span className={classes.skeleton} /> : summary ? formatMoney(summary[key]) : '—'}</strong>
-          </div>
-          <span className={`${classes.symbol} summary-symbol`}><Icon size={22} strokeWidth={1.8} /></span>
-        </div>
-      ))}
-    </section>
-  );
+export function TransactionSummary({ summary, loading, scope }: { summary?: Summary; loading: boolean; scope: string }) {
+  const value = (key: keyof Pick<Summary, 'net' | 'sales' | 'purchases' | 'expenses'>) => loading ? <span className="block h-7 w-28 max-w-full rounded bg-current opacity-10" /> : summary ? formatMoney(summary[key]) : '—';
+  return <section aria-label="Totais das transações filtradas" aria-busy={loading} className="mb-6">
+    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-sm font-medium">Sua movimentação</h2><p className="text-xs leading-5 text-muted">{scope}</p></div>
+    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] overflow-hidden rounded-xl border border-line bg-white max-[1100px]:grid-cols-2">
+      <div className="min-w-0 bg-brand-deep px-6 py-6 text-white max-sm:px-4"><p className="text-xs font-medium text-[#e5cfd7]">Saldo líquido</p><strong className="numeric mt-3 block text-[26px] leading-tight font-semibold tracking-[-0.025em] [overflow-wrap:anywhere] max-sm:text-xl">{value('net')}</strong><p className="mt-3 text-[11px] text-[#e5cfd7]">Vendas − compras − despesas</p></div>
+      {([{ key: 'sales', label: 'Vendas', color: 'text-sale', icon: ArrowUpRight }, { key: 'purchases', label: 'Compras', color: 'text-expense', icon: ArrowDownLeft }, { key: 'expenses', label: 'Despesas', color: 'text-expense', icon: ArrowDownLeft }] as const).map(({ key, label, color, icon: Icon }) => <div key={key} className="min-w-0 border-l border-line px-6 py-6 max-[1100px]:nth-[3]:border-t max-[1100px]:nth-[3]:border-l-0 max-[1100px]:nth-[4]:border-t max-sm:px-4"><div className="flex items-center justify-between gap-2"><p className="text-xs font-medium text-muted">{label}</p><Icon size={17} className={color} /></div><strong className={`numeric mt-3 block text-xl leading-tight font-semibold tracking-[-0.02em] [overflow-wrap:anywhere] ${color}`}>{value(key)}</strong><p className="mt-3 text-[11px] text-muted">{key === 'sales' ? 'Entradas' : key === 'purchases' ? 'Estoque e revenda' : 'Custos operacionais'}</p></div>)}
+    </div>
+  </section>;
 }
