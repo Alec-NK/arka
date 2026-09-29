@@ -1,12 +1,14 @@
+import { Alert } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useGetSession } from '../../hooks/session';
 import { useGetTransactionList, useGetTransaction } from '../../hooks/transactions';
 import { useGetTransactionTypeList } from '../../hooks/transaction-types';
-import { Button } from '../../components/atom/Button';
-import { Dialog } from '../../components/organism/Dialog';
-import { Notice } from '../../components/molecule/Notice';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/guarded-dialog';
+import { Notice } from '@/components/notice';
 import { AppLayout } from '../_components/AppLayout';
 import { PageHeader } from '../_components/PageHeader';
 import { TransactionFilters } from './_components/TransactionFilters';
@@ -55,12 +57,12 @@ export default function TransactionsPage() {
   return <AppLayout name={session.data?.name || 'Seu perfil'}>
     <PageHeader title="Transações" description="Acompanhe cada movimento. Tenha clareza do seu saldo." action={<Button variant="primary" onClick={add} disabled={!types.data?.length}><Plus />Adicionar transação</Button>} />
     <TransactionSummary summary={list.data?.summary} loading={list.isPending} scope={scope} />
-    {types.isError && <div role="alert" className="feedback-error mb-5 flex flex-wrap items-center gap-3"><AlertCircle size={19} /><span className="flex-1">Não foi possível carregar os tipos de transação. {types.error.message}</span><Button onClick={() => void types.refetch()}>Tentar novamente</Button></div>}
+    {types.isError && <Alert asChild variant="plain"><div role="alert" className="feedback-error mb-5 flex flex-wrap items-center gap-3"><AlertCircle size={19} /><span className="flex-1">Não foi possível carregar os tipos de transação. {types.error.message}</span><Button onClick={() => void types.refetch()}>Tentar novamente</Button></div></Alert>}
     <div className={`grid items-start gap-5 ${selectedId && desktop ? 'grid-cols-[minmax(0,1fr)_320px] min-[1700px]:grid-cols-[minmax(0,1fr)_350px]' : 'grid-cols-1'}`}>
-      <section className="@container min-w-0 rounded-xl border border-line bg-white" aria-label="Transações"><TransactionFilters filters={filters} types={types.data || []} userId={userId} onChange={changeFilters} />
-        {error ? <div role="alert" className="feedback-error m-5 flex flex-wrap items-center gap-3"><AlertCircle size={20} /><span className="min-w-[150px] flex-1">{error}</span><Button onClick={invalidType ? clear : () => void list.refetch()}>{invalidType ? 'Limpar filtros' : 'Tentar novamente'}</Button></div> : <TransactionsTable data={list.data?.data || []} selectedId={selectedId} sortOrder={filters.sortOrder} loading={list.isPending} onSort={() => changeFilters({ sortOrder: filters.sortOrder === 'desc' ? 'asc' : 'desc' })} onSelect={select} onEdit={setForm} onDelete={setDeletion} onClear={clear} onCreate={add} canCreate={!!types.data?.length} filtered={!!(filters.search || filters.transactionTypeId || filters.supplierId || filters.dateFrom || filters.dateTo)} />}
+      <Card asChild><section className="@container min-w-0 rounded-xl border border-line bg-white" aria-label="Transações"><TransactionFilters filters={filters} types={types.data || []} userId={userId} onChange={changeFilters} />
+        {error ? <Alert asChild variant="plain"><div role="alert" className="feedback-error m-5 flex flex-wrap items-center gap-3"><AlertCircle size={20} /><span className="min-w-[150px] flex-1">{error}</span><Button onClick={invalidType ? clear : () => void list.refetch()}>{invalidType ? 'Limpar filtros' : 'Tentar novamente'}</Button></div></Alert> : <TransactionsTable data={list.data?.data || []} selectedId={selectedId} sortOrder={filters.sortOrder} loading={list.isPending} onSort={() => changeFilters({ sortOrder: filters.sortOrder === 'desc' ? 'asc' : 'desc' })} onSelect={select} onEdit={setForm} onDelete={setDeletion} onClear={clear} onCreate={add} canCreate={!!types.data?.length} filtered={!!(filters.search || filters.transactionTypeId || filters.supplierId || filters.dateFrom || filters.dateTo)} />}
         {list.data && !error && <TransactionPagination meta={list.data.meta} pageSize={filters.pageSize} loading={list.isFetching} onPageChange={page => changeFilters({ page })} onPageSizeChange={pageSize => changeFilters({ pageSize, page: 1 })} />}
-      </section>
+      </section></Card>
       {selectedId && desktop && <TransactionDetails {...detailsProps} />}
     </div>
     {selectedId && !desktop && <Dialog title="Detalhes da transação" onClose={closeDetails} sheet><TransactionDetails {...detailsProps} embedded /></Dialog>}

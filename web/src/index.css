@@ -20,6 +20,28 @@
   --shadow-layer: 0 18px 55px #28132324;
 }
 
+/* shadcn semantic aliases. Arka's existing tokens and radius scale stay authoritative.
+   `muted` already means text here: primitives use bg-canvas for muted surfaces. */
+@theme inline {
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --color-card: #fff;
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #fff;
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-brand);
+  --color-primary-foreground: #fff;
+  --color-secondary: #fff;
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted-foreground: var(--color-muted);
+  --color-accent: var(--color-brand-soft);
+  --color-accent-foreground: var(--color-brand);
+  --color-destructive: var(--color-expense);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line);
+  --color-ring: var(--color-brand);
+}
+
 @layer base {
   :root { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-canvas); font-synthesis: none; }
   body { min-width: 320px; margin: 0; }

@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/sonner';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -11,7 +12,7 @@ function SessionQueries() {
     refetchOnWindowFocus: false,
   } } }));
   useEffect(() => () => { void queryClient.cancelQueries(); queryClient.clear() }, [queryClient]);
-  return <QueryClientProvider client={queryClient}><Router /></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><Router /><Toaster /></QueryClientProvider>;
 }
 
 export default function App() {

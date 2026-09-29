@@ -1,6 +1,7 @@
+import { Alert } from '@/components/ui/alert';
 import { Trash2 } from 'lucide-react';
-import { Dialog } from '../../../components/organism/Dialog';
-import { Button } from '../../../components/atom/Button';
+import { ConfirmationDialog } from '@/components/guarded-dialog';
+import { Button } from '@/components/ui/button';
 import { useDeleteTransaction } from '../../../hooks/transactions';
 import type { Transaction } from '../../../types/transaction';
 import { signedMoney } from '../../../utils/format-money';
@@ -13,5 +14,5 @@ const classes = {
 export function DeleteTransactionDialog({ transaction, onClose, onDeleted, onRefresh }: { transaction: Transaction; onClose: () => void; onDeleted: () => void; onRefresh: () => void }) {
  const mutation = useDeleteTransaction();
  const remove = async () => { try { await mutation.mutateAsync({ id: transaction.id, version: transaction.version }); onDeleted() } catch { /* Error remains visible in the dialog. */ } };
- return <Dialog title="Excluir transação?" onClose={() => { if(!mutation.isPending) onClose() }}><div className={classes.body}><p>Isso removerá a transação da sua movimentação e atualizará seus totais.</p><div className={classes.record}><span>{transaction.description || 'Sem descrição'}</span><strong>{signedMoney(transaction.amount, transaction.transactionType.code)}</strong></div>{mutation.error && <div role="alert" className={classes.error}>{mutation.error.message}<Button onClick={onRefresh}>Atualizar transação</Button></div>}<div className={classes.footer}><Button disabled={mutation.isPending} onClick={onClose}>Cancelar</Button><Button variant="destructive" disabled={mutation.isPending} onClick={() => void remove()}><Trash2 size={18} />{mutation.isPending ? 'Excluindo…' : 'Excluir transação'}</Button></div></div></Dialog>;
+ return <ConfirmationDialog busy={mutation.isPending} title="Excluir transação?" onClose={() => { if(!mutation.isPending) onClose() }}><div className={classes.body}><p>Isso removerá a transação da sua movimentação e atualizará seus totais.</p><div className={classes.record}><span>{transaction.description || 'Sem descrição'}</span><strong>{signedMoney(transaction.amount, transaction.transactionType.code)}</strong></div>{mutation.error && <Alert asChild variant="plain"><div role="alert" className={classes.error}>{mutation.error.message}<Button onClick={onRefresh}>Atualizar transação</Button></div></Alert>}<div className={classes.footer}><Button disabled={mutation.isPending} onClick={onClose}>Cancelar</Button><Button variant="destructive" disabled={mutation.isPending} onClick={() => void remove()}><Trash2 size={18} />{mutation.isPending ? 'Excluindo…' : 'Excluir transação'}</Button></div></div></ConfirmationDialog>;
 }

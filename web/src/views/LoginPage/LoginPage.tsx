@@ -1,10 +1,13 @@
+import { Alert } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useCreateSession } from '../../hooks/session';
 import { useSessionStore } from '../../context/session';
 import { ROUTES } from '../../routes/constants';
-import { Button } from '../../components/atom/Button';
+import { Button } from '@/components/ui/button';
 import { Brand } from '../_components/Brand';
 const classes = {
   "page": "grid min-h-dvh place-items-center bg-[#fdfcfc] px-6 py-12 max-[480px]:py-10",
@@ -36,9 +39,9 @@ export default function LoginPage() {
       <header><h1 id="login-title">Entrar no Arka</h1><p>Informe seu e-mail para acessar suas transações e fornecedores.</p></header>
       <form onSubmit={submit} aria-busy={session.isPending}>
         <div className={classes.field}>
-          <label htmlFor="login-email">E-mail</label>
-          <input id="login-email" name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required maxLength={254} placeholder="voce@exemplo.com" value={email} readOnly={session.isPending} aria-invalid={session.isError} aria-describedby={session.isError ? 'login-error' : undefined} onChange={event => { setEmail(event.target.value); if (session.isError) session.reset() }} />
-          {session.isError && <p id="login-error" className={classes.error} role="alert">{session.error.message}</p>}
+          <Label htmlFor="login-email">E-mail</Label>
+          <Input variant="login" id="login-email" name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required maxLength={254} placeholder="voce@exemplo.com" value={email} readOnly={session.isPending} aria-invalid={session.isError} aria-describedby={session.isError ? 'login-error' : undefined} onChange={event => { setEmail(event.target.value); if (session.isError) session.reset() }} />
+          {session.isError && <Alert asChild variant="plain"><p id="login-error" className={classes.error} role="alert">{session.error.message}</p></Alert>}
         </div>
         <Button type="submit" variant="primary" disabled={session.isPending || !email.trim()}>{session.isPending ? 'Entrando…' : 'Entrar'}</Button>
         <span className="sr-only" role="status">{session.isPending ? 'Verificando seu e-mail…' : ''}</span>
